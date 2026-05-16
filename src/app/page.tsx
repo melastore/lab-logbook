@@ -161,7 +161,7 @@ export default function AnalystEntryPage() {
           )}
           {user && (
             <Link className="rail-avatar" href="/settings" title={user.fullName}>
-              <UserAvatar fullName={user.fullName} username={user.username} seed={user.avatarSeed} size="sm" />
+              <UserAvatar name={user.username} seed={user.avatarSeed} size="sm" />
               <span>{user.username}</span>
             </Link>
           )}
@@ -185,7 +185,7 @@ export default function AnalystEntryPage() {
           {user ? (
             <>
               <span className="user-chip">
-                <UserAvatar fullName={user.fullName} username={user.username} seed={user.avatarSeed} size="sm" />
+                <UserAvatar name={user.username} seed={user.avatarSeed} size="sm" />
                 {user.fullName} &middot; <span style={{ textTransform: "capitalize" }}>{user.role}</span>
               </span>
               <div className="topbar-nav-btns">
@@ -241,14 +241,14 @@ export default function AnalystEntryPage() {
             </div>
 
             {loadingTemplates ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, padding: "20px 22px" }}>
-                {[1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: 140 }} />)}
+              <div className="instrument-grid">
+                {[1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: 110 }} />)}
               </div>
             ) : categories.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon"><InstrumentIcon name="ICP" /></div>
                 <p>No instrument templates configured.<br />
-                  <Link href="/admin" style={{ color: "var(--accent)", fontWeight: 700 }}>Open Supervisor Dashboard</Link> to set them up.
+                  <Link href="/admin" className="text-link">Open Supervisor Dashboard</Link> to set them up.
                 </p>
               </div>
             ) : (
@@ -371,16 +371,16 @@ export default function AnalystEntryPage() {
             <div className="form-section form-section-top-border">
               <p className="form-section-label">Time Tracking</p>
               <div className="time-row">
-                <div className="field" style={{ flex: 1 }}>
+                <div className="field">
                   <label className="field-label">Start Time <span className="req">*</span></label>
                   <input type="time" value={record.startTime} onChange={(e) => updateField("startTime", e.target.value)} required />
                 </div>
                 <div className="time-arrow">→</div>
-                <div className="field" style={{ flex: 1 }}>
+                <div className="field">
                   <label className="field-label">End Time <span className="req">*</span></label>
                   <input type="time" value={record.endTime} onChange={(e) => updateField("endTime", e.target.value)} required />
                 </div>
-                <div className="field" style={{ flexShrink: 0 }}>
+                <div className="field">
                   <label className="field-label">Duration</label>
                   <div className="duration-chip">{duration}</div>
                 </div>

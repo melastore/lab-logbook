@@ -220,7 +220,7 @@ export default function SettingsPage() {
           <div className="settings-grid">
             <section className="panel settings-panel">
               <div className="settings-hero">
-                <UserAvatar fullName={user.fullName} username={username} seed={avatarSeed} size="lg" />
+                <UserAvatar name={username} seed={avatarSeed} size="lg" />
                 <div>
                   <h2>{user.fullName}</h2>
                   <p>{user.email}</p>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="avatar-setting">
-                  <UserAvatar fullName={user.fullName} username={username} seed={avatarSeed} size="lg" />
+                  <UserAvatar name={username} seed={avatarSeed} size="lg" />
                   <div>
                     <p className="avatar-setting-title">Profile picture</p>
                     <p className="avatar-setting-copy">Generated avatar for now. Regenerate it until you get one you like.</p>

@@ -63,7 +63,7 @@ export default function AdminDashboard() {
           )}
           {user && (
             <Link className="rail-avatar" href="/settings" title={user.fullName}>
-              <UserAvatar fullName={user.fullName} username={user.username} seed={user.avatarSeed} size="sm" />
+              <UserAvatar name={user.username} seed={user.avatarSeed} size="sm" />
               <span>{user.username}</span>
             </Link>
           )}
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
           {user ? (
             <>
               <span className="user-chip">
-                <UserAvatar fullName={user.fullName} username={user.username} seed={user.avatarSeed} size="sm" />
+                <UserAvatar name={user.username} seed={user.avatarSeed} size="sm" />
                 {user.fullName} · <span style={{ textTransform: "capitalize" }}>{user.role}</span>
               </span>
               <div className="topbar-nav-btns">
@@ -106,12 +106,14 @@ export default function AdminDashboard() {
         <div className="notice notice-info">All signed-in users can view log records. Supervisor or admin access is required for review actions and management tabs.</div>
       )}
       {!user && (
-        <div className="notice notice-warning" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <span>Sign in with a supervisor or admin account to access this dashboard.</span>
-          <span style={{ display: "flex", gap: 10 }}>
-            <Link className="btn btn-primary btn-sm" href="/login?redirect=/admin">Sign in →</Link>
-            <Link className="btn btn-outline btn-sm" href="/setup">First time? Run setup →</Link>
-          </span>
+        <div className="notice notice-warning">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+            <span>Sign in with a supervisor or admin account to access this dashboard.</span>
+            <span style={{ display: "flex", gap: 10 }}>
+              <Link className="btn btn-primary btn-sm" href="/login?redirect=/admin">Sign in →</Link>
+              <Link className="btn btn-outline btn-sm" href="/setup">First time? Run setup →</Link>
+            </span>
+          </div>
         </div>
       )}
 

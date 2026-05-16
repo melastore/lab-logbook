@@ -1,8 +1,7 @@
 import type { CSSProperties } from "react";
 
 type UserAvatarProps = {
-  fullName?: string;
-  username?: string;
+  name?: string;
   seed?: string;
   size?: "sm" | "md" | "lg";
 };
@@ -99,10 +98,9 @@ function ChemDecoration({ sym }: { sym: ChemSym }) {
   );
 }
 
-export function UserAvatar({ fullName = "", username = "", seed = "", size = "md" }: UserAvatarProps) {
-  const displayName = fullName || username || "User";
-  const initials = initialsFor(displayName);
-  const hash = hashString(seed || displayName);
+export function UserAvatar({ name = "User", seed = "", size = "md" }: UserAvatarProps) {
+  const initials = initialsFor(name);
+  const hash = hashString(seed || name);
   const palette = palettes[hash % palettes.length];
   const sym = symbols[hash % symbols.length];
 
@@ -112,7 +110,7 @@ export function UserAvatar({ fullName = "", username = "", seed = "", size = "md
   } as CSSProperties;
 
   return (
-    <span className={`avatar avatar-${size}`} style={style} aria-hidden="true" title={displayName}>
+    <span className={`avatar avatar-${size}`} style={style} aria-hidden="true" title={name}>
       <ChemDecoration sym={sym} />
       <span style={{ position: "relative", zIndex: 1, fontWeight: 900 }}>{initials}</span>
     </span>

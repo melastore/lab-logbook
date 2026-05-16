@@ -205,20 +205,6 @@ export default function AnalystEntryPage() {
         </div>
       </header>
 
-      <div className="mobile-progress-dock" aria-live="polite">
-        <div className="mobile-progress-dock-top">
-          <span>Entry readiness</span>
-          <strong>{completion}%</strong>
-        </div>
-        <div className="mobile-progress-dock-track" aria-hidden="true">
-          <span style={{ width: `${completion}%` }} />
-        </div>
-        <div className="mobile-progress-dock-meta">
-          <span>{selectedTemplate ? selectedTemplate.instrumentName : "Select instrument"}</span>
-          <span>{canSubmit ? "Ready to submit" : user ? "Complete required fields" : "Login required"}</span>
-        </div>
-      </div>
-
       {/* ── Status strip ── */}
       <div className="lab-status-strip">
         <div className="status-strip-cell">

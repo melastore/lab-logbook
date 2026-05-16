@@ -12,7 +12,6 @@ type SubmitState = "idle" | "submitting" | "sent" | "error";
 const emptyRecord = {
   date: new Date().toISOString().slice(0, 10),
   analyst: "",
-  analystSignature: "",
   sampleId: "",
   startTime: "",
   endTime: "",
@@ -51,7 +50,7 @@ export default function AnalystEntryPage() {
       .then((d) => {
         if (d.user) {
           setUser(d.user);
-          setRecord((prev) => ({ ...prev, analyst: d.user.fullName, analystSignature: d.user.fullName }));
+          setRecord((prev) => ({ ...prev, analyst: d.user.fullName }));
         }
       })
       .catch(() => {});
@@ -80,7 +79,7 @@ export default function AnalystEntryPage() {
   function selectCategory(id: string) { setSelectedCatId(id); setSelectedTemplate(null); }
   async function logout() { await fetch("/api/auth/logout", { method: "POST" }); setUser(null); }
 
-  const signatureReady = Boolean(signatureImage || record.analystSignature);
+  const signatureReady = Boolean(signatureImage);
   const requiredFilled = [selectedTemplate, record.date, record.analyst, record.sampleId, record.startTime, record.endTime, record.methodUsed, signatureReady];
   const completion = Math.round((requiredFilled.filter(Boolean).length / requiredFilled.length) * 100);
   const canSubmit = user && requiredFilled.every(Boolean);
@@ -109,7 +108,7 @@ export default function AnalystEntryPage() {
       endTime:          record.endTime,
       remarks:          record.remarks,
       analystSignature: encodeAnalystSignature({
-        typed: record.analystSignature,
+        typed: "",
         image: signatureImage,
         signedAt: new Date().toISOString(),
         signedBy: user.fullName,
@@ -132,7 +131,7 @@ export default function AnalystEntryPage() {
     const result = await response.json();
     setSubmitState("sent");
     setMessage(result.telegramSent ? "Record submitted. Supervisor notified via Telegram." : "Record submitted. Awaiting supervisor review.");
-    setRecord((prev) => ({ ...emptyRecord, date: new Date().toISOString().slice(0, 10), analyst: prev.analyst, analystSignature: prev.analystSignature, methodUsed: "" }));
+    setRecord((prev) => ({ ...emptyRecord, date: new Date().toISOString().slice(0, 10), analyst: prev.analyst, methodUsed: "" }));
     setSignatureImage("");
     setSelectedTemplate(null);
   }
@@ -418,15 +417,6 @@ export default function AnalystEntryPage() {
                 <label className="field-label">Analyst Signature <span className="req">*</span></label>
                 <SignaturePad value={signatureImage} onChange={setSignatureImage} />
               </div>
-              <div className="field" style={{ marginTop: 16 }}>
-                <label className="field-label">Typed Name / Initials Fallback</label>
-                <input
-                  type="text"
-                  value={record.analystSignature}
-                  onChange={(e) => updateField("analystSignature", e.target.value)}
-                  placeholder="Initials or full name"
-                />
-              </div>
             </div>
           </section>
 
@@ -474,7 +464,7 @@ export default function AnalystEntryPage() {
                 <SummaryItem label="Sample ID"     value={record.sampleId} />
                 <SummaryItem label="Method"        value={record.methodUsed} />
                 <SummaryItem label="Analyst"       value={record.analyst} />
-                <SummaryItem label="Signature"     value={signatureImage ? "Drawn signature captured" : record.analystSignature} />
+                <SummaryItem label="Signature"     value={signatureImage ? "Drawn signature captured" : ""} />
                 <SummaryItem label="Run time"      value={record.startTime && record.endTime ? `${record.startTime} – ${record.endTime} (${duration})` : ""} />
                 <SummaryItem label="Date"          value={record.date} />
               </div>

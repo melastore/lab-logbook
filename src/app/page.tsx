@@ -43,6 +43,7 @@ export default function AnalystEntryPage() {
   const [user, setUser]                     = useState<AppUser | null>(null);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [signatureImage, setSignatureImage] = useState("");
+  const [mobileStatusOpen, setMobileStatusOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -83,6 +84,7 @@ export default function AnalystEntryPage() {
   const requiredFilled = [selectedTemplate, record.date, record.analyst, record.sampleId, record.startTime, record.endTime, record.methodUsed, signatureReady];
   const completion = Math.round((requiredFilled.filter(Boolean).length / requiredFilled.length) * 100);
   const canSubmit = user && requiredFilled.every(Boolean);
+  const statusText = submitState === "sent" ? "Submitted" : user ? "Ready to submit" : "Login required";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -205,26 +207,42 @@ export default function AnalystEntryPage() {
       </header>
 
       {/* ── Status strip ── */}
-      <div className="lab-status-strip">
-        <div className="status-strip-cell">
-          <span className="label">Session</span>
-          <strong>{user ? `${user.username} — Authenticated` : "Not signed in"}</strong>
+      <section className={`lab-status-panel ${mobileStatusOpen ? "mobile-open" : ""}`} aria-label="Entry status">
+        <button
+          className="mobile-status-toggle"
+          type="button"
+          aria-expanded={mobileStatusOpen}
+          onClick={() => setMobileStatusOpen((open) => !open)}
+        >
+          <span>
+            <span className="mobile-status-kicker">Status</span>
+            <strong>{statusText}</strong>
+          </span>
+          <span className="mobile-status-meta">{selectedTemplate ? selectedTemplate.instrumentName : "None selected"}</span>
+          <span className="mobile-status-chevron" aria-hidden="true">v</span>
+        </button>
+
+        <div className="lab-status-strip">
+          <div className="status-strip-cell">
+            <span className="label">Session</span>
+            <strong>{user ? `${user.username} — Authenticated` : "Not signed in"}</strong>
+          </div>
+          <div className="status-strip-cell">
+            <span className="label">Instrument</span>
+            <strong>{selectedTemplate ? selectedTemplate.instrumentName : "None selected"}</strong>
+          </div>
+          <div className="status-strip-cell">
+            <span className="label">Today</span>
+            <strong>{new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong>
+          </div>
+          <div className="status-strip-cell">
+            <span className="label">Record Status</span>
+            <strong style={{ color: submitState === "sent" ? "var(--success)" : undefined }}>
+              {submitState === "sent" ? "Submitted ✓" : user ? "Ready to submit" : "Login required"}
+            </strong>
+          </div>
         </div>
-        <div className="status-strip-cell">
-          <span className="label">Instrument</span>
-          <strong>{selectedTemplate ? selectedTemplate.instrumentName : "None selected"}</strong>
-        </div>
-        <div className="status-strip-cell">
-          <span className="label">Today</span>
-          <strong>{new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</strong>
-        </div>
-        <div className="status-strip-cell">
-          <span className="label">Record Status</span>
-          <strong style={{ color: submitState === "sent" ? "var(--success)" : undefined }}>
-            {submitState === "sent" ? "Submitted ✓" : user ? "Ready to submit" : "Login required"}
-          </strong>
-        </div>
-      </div>
+      </section>
 
       <form className="workspace entry-layout" onSubmit={handleSubmit}>
         <div className="form-stack">

@@ -341,11 +341,18 @@ button:disabled {
 }
 
 /* Status Strip */
+.lab-status-panel {
+  margin-bottom: 24px;
+}
+
+.mobile-status-toggle {
+  display: none;
+}
+
 .lab-status-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
-  margin-bottom: 24px;
 }
 
 .status-strip-cell {
@@ -2408,6 +2415,110 @@ textarea {
   .side-panel .side-card:first-child,
   .side-panel .side-card:nth-child(2) {
     display: none;
+  }
+
+  .lab-status-panel {
+    margin-bottom: 18px;
+  }
+
+  .mobile-status-toggle {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--shadow-1);
+    text-align: left;
+  }
+
+  .mobile-status-toggle > span:first-child {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .mobile-status-kicker {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .mobile-status-toggle strong {
+    color: var(--on-surface);
+    font-size: 15px;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-status-meta {
+    max-width: 132px;
+    padding: 6px 9px;
+    border-radius: var(--radius-full);
+    background: var(--surface-3);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-status-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    background: var(--primary-container);
+    color: var(--primary);
+    font-size: 18px;
+    font-weight: 900;
+    transition: transform 0.2s ease;
+  }
+
+  .lab-status-panel.mobile-open .mobile-status-chevron {
+    transform: rotate(180deg);
+  }
+
+  .lab-status-panel .lab-status-strip {
+    gap: 0;
+    max-height: 0;
+    overflow: hidden;
+    margin-top: 0;
+    opacity: 0;
+    transition: max-height 0.24s ease, margin-top 0.22s ease, opacity 0.18s ease;
+  }
+
+  .lab-status-panel.mobile-open .lab-status-strip {
+    gap: 10px;
+    max-height: 360px;
+    margin-top: 10px;
+    opacity: 1;
+  }
+
+  .lab-status-panel .status-strip-cell {
+    min-height: 0;
+    padding: 0 14px;
+    border-width: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: padding 0.22s ease, border-width 0.22s ease, opacity 0.18s ease, transform 0.2s ease;
+  }
+
+  .lab-status-panel.mobile-open .status-strip-cell {
+    padding: 12px 14px;
+    border-width: 1px;
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .app-frame {

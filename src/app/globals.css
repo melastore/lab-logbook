@@ -384,9 +384,11 @@ button:disabled {
   gap: 24px;
 }
 
-.entry-layout {
-  max-width: 800px;
-  margin: 0 auto;
+@media (min-width: 1200px) {
+  .entry-layout {
+    grid-template-columns: 1fr 340px;
+    align-items: start;
+  }
 }
 
 .form-stack {

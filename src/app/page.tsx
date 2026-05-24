@@ -96,6 +96,7 @@ export default function AnalystEntryPage() {
 
   const signatureReady = Boolean(signatureImage);
   const requiredFilled = [selectedTemplate, record.date, record.analyst, record.activityType, record.sampleId, record.startTime, record.endTime, record.methodUsed, signatureReady];
+  const completion = Math.round((requiredFilled.filter(Boolean).length / requiredFilled.length) * 100);
   const canSubmit = user && requiredFilled.every(Boolean);
   const statusText = submitState === "sent" ? "Submitted" : user ? "Ready to submit" : "Login required";
 
@@ -621,6 +622,59 @@ export default function AnalystEntryPage() {
           </div>
         </div>
 
+        {/* ── Side panel ── */}
+        <aside className="side-panel">
+          <div className="side-card">
+            <div className="side-card-header">
+              <span className="side-card-title">Entry Readiness</span>
+              <span className="progress-ring">{completion}%</span>
+            </div>
+            <div className="side-card-body">
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${completion}%` }} />
+              </div>
+              <p style={{ fontSize: 15, color: "var(--muted)" }}>
+                {canSubmit ? "All required fields complete." : "Fill required fields to submit."}
+              </p>
+            </div>
+          </div>
+
+          <div className="side-card">
+            <div className="side-card-header">
+              <span className="side-card-title">Submission Preview</span>
+            </div>
+            <div className="side-card-body">
+              <div className="summary-list">
+                <SummaryItem label="Instrument"    value={selectedTemplate?.instrumentName} />
+                <SummaryItem label="Instrument ID" value={selectedTemplate?.instrumentId} />
+                <SummaryItem label="Activity"      value={record.activityType} />
+                <SummaryItem label="Sample ID"     value={record.sampleId} />
+                <SummaryItem label="Measured"      value={record.measuredValue} />
+                <SummaryItem label="Method"        value={record.methodUsed} />
+                <SummaryItem label="Analyst"       value={record.analyst} />
+                <SummaryItem label="Signature"     value={signatureImage ? "Drawn signature captured" : ""} />
+                <SummaryItem label="Run time"      value={record.startTime && record.endTime ? `${record.startTime} – ${record.endTime} (${duration})` : ""} />
+                <SummaryItem label="Date"          value={record.date} />
+              </div>
+            </div>
+          </div>
+
+          {selectedTemplate && (
+            <div className="side-card">
+              <div className="side-card-header">
+                <span className="side-card-title">Instrument Spec</span>
+              </div>
+              <div className="side-card-body">
+                <div className="summary-list">
+                  <SummaryItem label="Manufacturer" value={selectedTemplate.manufacturer} />
+                  <SummaryItem label="Model"         value={selectedTemplate.instrumentModel} />
+                  <SummaryItem label="Serial No."    value={selectedTemplate.serialNumber} />
+                  <SummaryItem label="Location"      value={selectedTemplate.location} />
+                </div>
+              </div>
+            </div>
+          )}
+        </aside>
       </form>
       </div>
     </main>
@@ -712,6 +766,15 @@ function BannerCell({ label, value }: { label: string; value: string | undefined
     <div className="instrument-banner-cell">
       <p className="instrument-banner-cell-label">{label}</p>
       {value ? <p className="instrument-banner-cell-value">{value}</p> : <p className="instrument-banner-cell-empty">Not set</p>}
+    </div>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="summary-item">
+      <p className="summary-label">{label}</p>
+      {value ? <p className="summary-value">{value}</p> : <p className="summary-empty">Pending</p>}
     </div>
   );
 }

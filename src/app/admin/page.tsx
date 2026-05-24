@@ -90,6 +90,9 @@ export default function AdminDashboard() {
                 {user.fullName} · <span style={{ textTransform: "capitalize" }}>{user.role}</span>
               </span>
               <div className="topbar-nav-btns">
+                {isAdmin && (
+                  <a className="btn btn-outline btn-sm" href="/api/admin/backup" download>Backup DB</a>
+                )}
                 <Link className="btn btn-outline btn-sm" href="/settings">Settings</Link>
                 <button className="btn btn-outline btn-sm" type="button" onClick={logout}>Sign out</button>
                 <Link className="btn btn-outline btn-sm" href="/">Analyst Entry</Link>
@@ -300,9 +303,11 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
               <div className="record-body">
                 <div className="record-summary-grid">
                   <RecordSummaryItem label="Analyst"   value={rec.analyst} />
-                  <RecordSummaryItem label="Sample"    value={rec.sampleId} />
+                  <RecordSummaryItem label="Activity"  value={rec.activityType} />
+                  <RecordSummaryItem label="Sample/QC" value={rec.sampleId} />
                   <RecordSummaryItem label="Date"      value={rec.date} />
                   <RecordSummaryItem label="Run Time"  value={runTime} />
+                  <RecordSummaryItem label="Measured"  value={rec.measuredValue} />
                   <RecordSummaryItem label="Method"    value={rec.methodUsed} />
                   <RecordSummaryItem label="Signature" value={signatureSummary(rec.analystSignature)} />
                 </div>
@@ -311,7 +316,9 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
                   <summary>Full submitted record</summary>
                   <div className="record-details-grid">
                     <RecordDetail label="Analyst"       value={rec.analyst} />
-                    <RecordDetail label="Sample ID"     value={rec.sampleId} />
+                    <RecordDetail label="Activity Type" value={rec.activityType} />
+                    <RecordDetail label="Sample ID / QC" value={rec.sampleId} />
+                    <RecordDetail label="Measured Value" value={rec.measuredValue} />
                     <RecordDetail label="Record Date"   value={rec.date} />
                     <RecordDetail label="Run Time"      value={runTime} />
                     <RecordDetail label="Method"        value={rec.methodUsed} />
@@ -324,6 +331,9 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
                     <RecordDetail label="Laboratory"    value={rec.laboratoryName} />
                     <RecordDetail label="Department"    value={rec.department} />
                     <RecordDetail label="Location"      value={rec.location} />
+                    {Object.entries(rec.metadata || {}).map(([key, val]) => (
+                      <RecordDetail key={key} label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} value={String(val)} />
+                    ))}
                     <RecordDetail label="Submitted"     value={new Date(rec.createdAt).toLocaleString()} />
                     <RecordDetail label="Signature"     value={signatureSummary(rec.analystSignature)} />
                   </div>

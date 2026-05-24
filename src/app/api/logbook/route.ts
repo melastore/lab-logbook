@@ -37,10 +37,13 @@ export async function POST(request: Request) {
     instrumentId: clean(body.instrumentId),
     date: clean(body.date),
     analyst: clean(body.analyst),
+    activityType: clean(body.activityType),
     methodUsed: clean(body.methodUsed),
     sampleId: clean(body.sampleId),
+    measuredValue: clean(body.measuredValue),
     startTime: clean(body.startTime),
     endTime: clean(body.endTime),
+    metadata: body.metadata || {},
     remarks: clean(body.remarks),
     analystSignature: cleanSignature(body.analystSignature),
   }, user.id);

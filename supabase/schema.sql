@@ -32,10 +32,13 @@ create table if not exists public.logbook_records (
   instrument_id text not null default '',
   record_date date,
   analyst text not null default '',
+  activity_type text not null default 'OP',
   method_used text not null default '',
   sample_id text not null default '',
+  measured_value text not null default '',
   start_time time,
   end_time time,
+  metadata jsonb not null default '{}'::jsonb,
   remarks text not null default '',
   analyst_signature text not null default ''
 );
@@ -168,6 +171,10 @@ end $$;
 --   alter table public.profiles
 --     add column if not exists username text unique,
 --     add column if not exists password_change_required boolean not null default true;
+--
+--   alter table public.logbook_records
+--     add column if not exists activity_type text not null default 'SMP' check (activity_type in ('CAL', 'QC', 'SMP', 'PREP', 'MTN', 'BRK')),
+--     add column if not exists measured_value text not null default '';
 --
 -- Then create instrument_categories and instrument_templates tables and
 -- run the seed DO block above.

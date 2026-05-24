@@ -33,10 +33,13 @@ export type LogbookRecord = {
   instrumentId: string;
   date: string;
   analyst: string;
+  activityType: string;
   methodUsed: string;
   sampleId: string;
+  measuredValue: string;
   startTime: string;
   endTime: string;
+  metadata: Record<string, string>;
   remarks: string;
   analystSignature: string;
 };
@@ -141,10 +144,13 @@ type LogbookRow = {
   instrument_id: string | null;
   record_date: string | null;
   analyst: string | null;
+  activity_type: string | null;
   method_used: string | null;
   sample_id: string | null;
+  measured_value: string | null;
   start_time: string | null;
   end_time: string | null;
+  metadata: Record<string, string> | null;
   remarks: string | null;
   analyst_signature: string | null;
 };
@@ -289,8 +295,10 @@ export async function createRecord(input: LogbookInput, submittedBy: string) {
       instrument_id: input.instrumentId,
       record_date: emptyToNull(input.date),
       analyst: input.analyst,
+      activity_type: input.activityType,
       method_used: input.methodUsed,
       sample_id: input.sampleId,
+      measured_value: input.measuredValue,
       start_time: emptyToNull(input.startTime),
       end_time: emptyToNull(input.endTime),
       remarks: input.remarks,
@@ -568,10 +576,13 @@ function mapRecord(row: LogbookRow): LogbookRecord {
     instrumentId: row.instrument_id || "",
     date: row.record_date || "",
     analyst: row.analyst || "",
+    activityType: row.activity_type || "SMP",
     methodUsed: row.method_used || "",
     sampleId: row.sample_id || "",
+    measuredValue: row.measured_value || "",
     startTime: row.start_time || "",
     endTime: row.end_time || "",
+    metadata: row.metadata || {},
     remarks: row.remarks || "",
     analystSignature: row.analyst_signature || "",
   };

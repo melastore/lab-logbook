@@ -12,12 +12,25 @@ type SubmitState = "idle" | "submitting" | "sent" | "error";
 const emptyRecord = {
   date: new Date().toISOString().slice(0, 10),
   analyst: "",
+  activityType: "OP",
   sampleId: "",
+  measuredValue: "",
   startTime: "",
   endTime: "",
   methodUsed: "",
   remarks: "",
+  metadata: {} as Record<string, string>,
 };
+
+const LOG_TYPES = [
+  { id: "OP", label: "Daily Operation", desc: "Routine instrument use and sample runs" },
+  { id: "CAL", label: "Calibration", desc: "Instrument calibration records" },
+  { id: "QC", label: "Quality Control", desc: "CRM, duplicates, and spike recoveries" },
+  { id: "PREP", label: "Sample Prep", desc: "Reagent addition, dilution, and extraction" },
+  { id: "MTN", label: "Maintenance", desc: "Routine upkeep and parts replacement" },
+  { id: "BRK", label: "Troubleshooting", desc: "Breakdowns and corrective actions" },
+  { id: "REAG", label: "Reagent/Standard", desc: "Preparation of standards or reagents" },
+];
 
 const CAT_ACTIVE_CLASS: Record<string, string> = { ICP: "active-icp", HPLC: "active-hplc", GC: "active-gc" };
 
@@ -77,11 +90,12 @@ export default function AnalystEntryPage() {
   const canAccessAdmin   = user?.role === "admin" || user?.role === "supervisor";
 
   function updateField(name: string, value: string) { setRecord((prev) => ({ ...prev, [name]: value })); }
+  function updateMetadata(name: string, value: string) { setRecord((prev) => ({ ...prev, metadata: { ...prev.metadata, [name]: value } })); }
   function selectCategory(id: string) { setSelectedCatId(id); setSelectedTemplate(null); }
   async function logout() { await fetch("/api/auth/logout", { method: "POST" }); setUser(null); }
 
   const signatureReady = Boolean(signatureImage);
-  const requiredFilled = [selectedTemplate, record.date, record.analyst, record.sampleId, record.startTime, record.endTime, record.methodUsed, signatureReady];
+  const requiredFilled = [selectedTemplate, record.date, record.analyst, record.activityType, record.sampleId, record.startTime, record.endTime, record.methodUsed, signatureReady];
   const completion = Math.round((requiredFilled.filter(Boolean).length / requiredFilled.length) * 100);
   const canSubmit = user && requiredFilled.every(Boolean);
   const statusText = submitState === "sent" ? "Submitted" : user ? "Ready to submit" : "Login required";
@@ -105,10 +119,13 @@ export default function AnalystEntryPage() {
       methodUsed:       record.methodUsed,
       date:             record.date,
       analyst:          record.analyst,
+      activityType:     record.activityType,
       sampleId:         record.sampleId,
+      measuredValue:    record.measuredValue,
       startTime:        record.startTime,
       endTime:          record.endTime,
       remarks:          record.remarks,
+      metadata:         record.metadata,
       analystSignature: encodeAnalystSignature({
         typed: "",
         image: signatureImage,
@@ -332,13 +349,38 @@ export default function AnalystEntryPage() {
             )}
           </section>
 
-          {/* ── Panel 2: Daily Record ── */}
+          {/* ── Panel 2: Select Log Type ── */}
           <section className="panel">
             <div className="section-heading">
               <span className="section-number">2</span>
               <div className="section-heading-text">
+                <h2>Select Log Type</h2>
+                <p>Choose the specific type of record you are entering.</p>
+              </div>
+            </div>
+            <div className="log-type-grid">
+              {LOG_TYPES.map((lt) => (
+                <button
+                  key={lt.id}
+                  type="button"
+                  className={`log-type-card ${record.activityType === lt.id ? "selected" : ""}`}
+                  onClick={() => updateField("activityType", lt.id)}
+                >
+                  <p className="log-type-title">{lt.label}</p>
+                  <p className="log-type-desc">{lt.desc}</p>
+                  {record.activityType === lt.id && <span className="instrument-card-check">✓</span>}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* ── Panel 3: Session Record ── */}
+          <section className="panel">
+            <div className="section-heading">
+              <span className="section-number">3</span>
+              <div className="section-heading-text">
                 <h2>Session Record</h2>
-                <p>Fill in the session details below and submit for supervisor review.</p>
+                <p>Fill in the details for the {LOG_TYPES.find(l => l.id === record.activityType)?.label}.</p>
               </div>
             </div>
 
@@ -353,9 +395,9 @@ export default function AnalystEntryPage() {
               </div>
             )}
 
-            {/* A — Run Info */}
+            {/* A — Run Info (Always visible) */}
             <div className="form-section">
-              <p className="form-section-label">Run Information</p>
+              <p className="form-section-label">General Information</p>
               <div className="form-grid-2">
                 <div className="field">
                   <label className="field-label">Date <span className="req">*</span></label>
@@ -368,56 +410,182 @@ export default function AnalystEntryPage() {
               </div>
             </div>
 
-            {/* B — Sample */}
+            {/* B — Dynamic Fields based on Activity Type */}
             <div className="form-section form-section-top-border">
-              <p className="form-section-label">Sample Identification</p>
-              <div className="field">
-                <label className="field-label">Sample ID <span className="req">*</span></label>
-                <input
-                  type="text"
-                  className="input-prominent"
-                  value={record.sampleId}
-                  onChange={(e) => updateField("sampleId", e.target.value)}
-                  placeholder="e.g. S2025-001"
-                  required
-                />
+              <p className="form-section-label">Specific Details</p>
+              <div className="form-grid-2">
+                {(record.activityType === "OP" || record.activityType === "PREP") && (
+                  <div className="field">
+                    <label className="field-label">Sample ID <span className="req">*</span></label>
+                    <input type="text" className="input-prominent" value={record.sampleId} onChange={(e) => updateField("sampleId", e.target.value)} placeholder="e.g. S2025-001" required />
+                  </div>
+                )}
+                {record.activityType === "OP" && (
+                  <div className="field">
+                    <label className="field-label">Measured Value / Result</label>
+                    <input type="text" value={record.measuredValue} onChange={(e) => updateField("measuredValue", e.target.value)} placeholder="e.g. 42.1 ppm" />
+                  </div>
+                )}
+
+                {record.activityType === "CAL" && (
+                  <>
+                    <div className="field">
+                      <label className="field-label">Standard Used <span className="req">*</span></label>
+                      <input type="text" value={record.metadata.standardUsed || ""} onChange={(e) => updateMetadata("standardUsed", e.target.value)} placeholder="e.g. CAL-STD-Fe" required />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Concentration Range</label>
+                      <input type="text" value={record.metadata.concentrationRange || ""} onChange={(e) => updateMetadata("concentrationRange", e.target.value)} placeholder="e.g. 1 - 100 ppm" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Calibration Curve (R²)</label>
+                      <input type="text" value={record.measuredValue} onChange={(e) => updateField("measuredValue", e.target.value)} placeholder="e.g. 0.9995" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Result / Status</label>
+                      <input type="text" value={record.metadata.resultStatus || ""} onChange={(e) => updateMetadata("resultStatus", e.target.value)} placeholder="e.g. Pass" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Due Date</label>
+                      <input type="date" value={record.metadata.dueDate || ""} onChange={(e) => updateMetadata("dueDate", e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                {record.activityType === "QC" && (
+                  <>
+                    <div className="field">
+                      <label className="field-label">QC Sample Type (Blank/CRM/Spike) <span className="req">*</span></label>
+                      <input type="text" value={record.sampleId} onChange={(e) => updateField("sampleId", e.target.value)} placeholder="e.g. CRM-Soil-1" required />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Expected Value</label>
+                      <input type="text" value={record.metadata.expectedValue || ""} onChange={(e) => updateMetadata("expectedValue", e.target.value)} placeholder="e.g. 50 ppm" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Measured Value</label>
+                      <input type="text" value={record.measuredValue} onChange={(e) => updateField("measuredValue", e.target.value)} placeholder="e.g. 48.5 ppm" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">% Recovery</label>
+                      <input type="text" value={record.metadata.percentRecovery || ""} onChange={(e) => updateMetadata("percentRecovery", e.target.value)} placeholder="e.g. 97%" />
+                    </div>
+                  </>
+                )}
+
+                {record.activityType === "PREP" && (
+                  <>
+                    <div className="field">
+                      <label className="field-label">Matrix</label>
+                      <input type="text" value={record.metadata.matrix || ""} onChange={(e) => updateMetadata("matrix", e.target.value)} placeholder="e.g. Wastewater" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Reagents Used</label>
+                      <input type="text" value={record.metadata.reagentsUsed || ""} onChange={(e) => updateMetadata("reagentsUsed", e.target.value)} placeholder="e.g. HNO3, HCl" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Dilution Factor</label>
+                      <input type="text" value={record.metadata.dilutionFactor || ""} onChange={(e) => updateMetadata("dilutionFactor", e.target.value)} placeholder="e.g. 10x" />
+                    </div>
+                  </>
+                )}
+
+                {record.activityType === "MTN" && (
+                  <>
+                    <div className="field full-width">
+                      <label className="field-label">Maintenance Type <span className="req">*</span></label>
+                      <input type="text" className="input-prominent" value={record.metadata.maintenanceType || ""} onChange={(e) => updateMetadata("maintenanceType", e.target.value)} placeholder="e.g. Preventative Maintenance" required />
+                    </div>
+                    <div className="field full-width">
+                      <label className="field-label">Action Description / Spare Parts Replaced</label>
+                      <textarea value={record.metadata.actionDescription || ""} onChange={(e) => updateMetadata("actionDescription", e.target.value)} rows={2} placeholder="Describe the action taken..." />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Performed By / Engineer</label>
+                      <input type="text" value={record.metadata.performedBy || ""} onChange={(e) => updateMetadata("performedBy", e.target.value)} />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Due Date (Next MTN)</label>
+                      <input type="date" value={record.metadata.dueDate || ""} onChange={(e) => updateMetadata("dueDate", e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                {record.activityType === "BRK" && (
+                  <>
+                    <div className="field full-width">
+                      <label className="field-label">Problem Description <span className="req">*</span></label>
+                      <textarea className="input-prominent" value={record.metadata.problemDescription || ""} onChange={(e) => updateMetadata("problemDescription", e.target.value)} rows={2} required />
+                    </div>
+                    <div className="field full-width">
+                      <label className="field-label">Action Taken</label>
+                      <textarea value={record.metadata.actionTaken || ""} onChange={(e) => updateMetadata("actionTaken", e.target.value)} rows={2} />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Downtime</label>
+                      <input type="text" value={record.metadata.downtime || ""} onChange={(e) => updateMetadata("downtime", e.target.value)} placeholder="e.g. 4 hours" />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Resolved By</label>
+                      <input type="text" value={record.metadata.resolvedBy || ""} onChange={(e) => updateMetadata("resolvedBy", e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                {record.activityType === "REAG" && (
+                  <>
+                    <div className="field full-width">
+                      <label className="field-label">Reagent/Standard Name <span className="req">*</span></label>
+                      <input type="text" className="input-prominent" value={record.metadata.reagentName || ""} onChange={(e) => updateMetadata("reagentName", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Batch / Lot No.</label>
+                      <input type="text" value={record.metadata.batchLot || ""} onChange={(e) => updateMetadata("batchLot", e.target.value)} />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Concentration</label>
+                      <input type="text" value={record.metadata.concentration || ""} onChange={(e) => updateMetadata("concentration", e.target.value)} />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Storage Condition</label>
+                      <input type="text" value={record.metadata.storageCondition || ""} onChange={(e) => updateMetadata("storageCondition", e.target.value)} />
+                    </div>
+                    <div className="field">
+                      <label className="field-label">Expiry Date</label>
+                      <input type="date" value={record.metadata.expiryDate || ""} onChange={(e) => updateMetadata("expiryDate", e.target.value)} />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* C — Time */}
-            <div className="form-section form-section-top-border">
-              <p className="form-section-label">Time Tracking</p>
-              <div className="time-row">
-                <div className="field">
-                  <label className="field-label">Start Time <span className="req">*</span></label>
-                  <input type="time" value={record.startTime} onChange={(e) => updateField("startTime", e.target.value)} required />
+            {/* C — Time & Method (if applicable) */}
+            {record.activityType !== "REAG" && (
+              <div className="form-section form-section-top-border">
+                <p className="form-section-label">Tracking</p>
+                <div className="time-row">
+                  <div className="field">
+                    <label className="field-label">Start Time <span className="req">*</span></label>
+                    <input type="time" value={record.startTime} onChange={(e) => updateField("startTime", e.target.value)} required />
+                  </div>
+                  <div className="time-arrow">→</div>
+                  <div className="field">
+                    <label className="field-label">End Time <span className="req">*</span></label>
+                    <input type="time" value={record.endTime} onChange={(e) => updateField("endTime", e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="field-label">Duration</label>
+                    <div className="duration-chip">{duration}</div>
+                  </div>
                 </div>
-                <div className="time-arrow">→</div>
-                <div className="field">
-                  <label className="field-label">End Time <span className="req">*</span></label>
-                  <input type="time" value={record.endTime} onChange={(e) => updateField("endTime", e.target.value)} required />
-                </div>
-                <div className="field">
-                  <label className="field-label">Duration</label>
-                  <div className="duration-chip">{duration}</div>
-                </div>
+                {(record.activityType === "OP" || record.activityType === "CAL" || record.activityType === "QC" || record.activityType === "PREP") && (
+                  <div className="field" style={{ marginTop: 16 }}>
+                    <label className="field-label">Method Used <span className="req">*</span></label>
+                    <input type="text" value={record.methodUsed} onChange={(e) => updateField("methodUsed", e.target.value)} required />
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* D — Method */}
-            <div className="form-section form-section-top-border">
-              <p className="form-section-label">Method</p>
-              <div className="field">
-                <label className="field-label">Method Used <span className="req">*</span></label>
-                <input
-                  type="text"
-                  value={record.methodUsed}
-                  onChange={(e) => updateField("methodUsed", e.target.value)}
-                  placeholder="e.g. Elemental analysis by ICP-OES"
-                  required
-                />
-              </div>
-            </div>
+            )}
 
             {/* E — Remarks & Signature */}
             <div className="form-section form-section-top-border">
@@ -428,7 +596,7 @@ export default function AnalystEntryPage() {
                   value={record.remarks}
                   onChange={(e) => updateField("remarks", e.target.value)}
                   rows={4}
-                  placeholder="Instrument condition, deviations, calibration notes, observations…"
+                  placeholder="Instrument condition, deviations, observations…"
                 />
               </div>
               <div className="signature-block">
@@ -479,7 +647,9 @@ export default function AnalystEntryPage() {
               <div className="summary-list">
                 <SummaryItem label="Instrument"    value={selectedTemplate?.instrumentName} />
                 <SummaryItem label="Instrument ID" value={selectedTemplate?.instrumentId} />
+                <SummaryItem label="Activity"      value={record.activityType} />
                 <SummaryItem label="Sample ID"     value={record.sampleId} />
+                <SummaryItem label="Measured"      value={record.measuredValue} />
                 <SummaryItem label="Method"        value={record.methodUsed} />
                 <SummaryItem label="Analyst"       value={record.analyst} />
                 <SummaryItem label="Signature"     value={signatureImage ? "Drawn signature captured" : ""} />

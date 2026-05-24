@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/logbook";
+import { getCurrentUser, supabaseRest } from "@/lib/logbook";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,18 +17,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Fetch all tables using the service role key via our logbook functions or direct API
-  const baseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
-  const headers = {
-    apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
-    Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY || ""}`
-  };
-
   try {
     const fetchTable = async (table: string) => {
-      const res = await fetch(`${baseUrl}/rest/v1/${table}?select=*`, { headers });
-      if (!res.ok) throw new Error(`Failed to fetch ${table}`);
-      return res.json();
+      return supabaseRest<unknown[]>(`/${table}?select=*`);
     };
 
     const [profiles, records, categories, templates, config] = await Promise.all([

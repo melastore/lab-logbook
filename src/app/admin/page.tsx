@@ -148,6 +148,8 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("All");
   const [query, setQuery] = useState("");
   const [analystFilter, setAnalystFilter] = useState("All");
+  const [instrumentFilter, setInstrumentFilter] = useState("All");
+  const [activityFilter, setActivityFilter] = useState("All");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [activeComment, setActiveComment] = useState<Record<string, string>>({});
@@ -196,12 +198,22 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
     return Array.from(new Set(records.map((rec) => rec.analyst).filter(Boolean))).sort((a, b) => a.localeCompare(b));
   }, [records]);
 
+  const instruments = useMemo(() => {
+    return Array.from(new Set(records.map((rec) => rec.instrumentName).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  }, [records]);
+
+  const activities = useMemo(() => {
+    return Array.from(new Set(records.map((rec) => rec.activityType).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  }, [records]);
+
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase();
     return records.filter((rec) => {
       const matchStatus = statusFilter === "All" || rec.status === statusFilter;
       const recordDate = rec.date || rec.createdAt.slice(0, 10);
       const matchAnalyst = analystFilter === "All" || rec.analyst === analystFilter;
+      const matchInstrument = instrumentFilter === "All" || rec.instrumentName === instrumentFilter;
+      const matchActivity = activityFilter === "All" || rec.activityType === activityFilter;
       const matchDateFrom = !dateFrom || recordDate >= dateFrom;
       const matchDateTo = !dateTo || recordDate <= dateTo;
       const matchSearch = !search || [
@@ -218,9 +230,9 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
         rec.location,
       ]
         .join(" ").toLowerCase().includes(search);
-      return matchStatus && matchAnalyst && matchDateFrom && matchDateTo && matchSearch;
+      return matchStatus && matchAnalyst && matchInstrument && matchActivity && matchDateFrom && matchDateTo && matchSearch;
     });
-  }, [records, statusFilter, query, analystFilter, dateFrom, dateTo]);
+  }, [records, statusFilter, query, analystFilter, instrumentFilter, activityFilter, dateFrom, dateTo]);
 
   const pending  = records.filter((r) => r.status === "Pending").length;
   const approved = records.filter((r) => r.status === "Approved").length;
@@ -242,21 +254,37 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <label className="toolbar-field">
-          <span>Analyst</span>
-          <select value={analystFilter} onChange={(e) => setAnalystFilter(e.target.value)}>
-            <option value="All">All analysts</option>
-            {analysts.map((analyst) => <option key={analyst} value={analyst}>{analyst}</option>)}
-          </select>
-        </label>
-        <label className="toolbar-field">
-          <span>From</span>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        </label>
-        <label className="toolbar-field">
-          <span>To</span>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        </label>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", width: "100%" }}>
+          <label className="toolbar-field">
+            <span>Analyst</span>
+            <select value={analystFilter} onChange={(e) => setAnalystFilter(e.target.value)}>
+              <option value="All">All analysts</option>
+              {analysts.map((analyst) => <option key={analyst} value={analyst}>{analyst}</option>)}
+            </select>
+          </label>
+          <label className="toolbar-field">
+            <span>Instrument</span>
+            <select value={instrumentFilter} onChange={(e) => setInstrumentFilter(e.target.value)}>
+              <option value="All">All instruments</option>
+              {instruments.map((inst) => <option key={inst} value={inst}>{inst}</option>)}
+            </select>
+          </label>
+          <label className="toolbar-field">
+            <span>Activity</span>
+            <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
+              <option value="All">All types</option>
+              {activities.map((act) => <option key={act} value={act}>{act}</option>)}
+            </select>
+          </label>
+          <label className="toolbar-field">
+            <span>From</span>
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </label>
+          <label className="toolbar-field">
+            <span>To</span>
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </label>
+        </div>
         <div className="seg-ctrl">
           {(["All", "Pending", "Approved", "Rejected"] as FilterStatus[]).map((s) => (
             <button key={s} type="button" className={`seg-btn ${statusFilter === s ? "active" : ""}`} onClick={() => setStatusFilter(s)}>{s}</button>
@@ -266,7 +294,7 @@ function RecordsTab({ user, isAdmin }: { user: AppUser | null; isAdmin: boolean 
         <button
           className="btn btn-ghost btn-sm"
           type="button"
-          onClick={() => { setQuery(""); setAnalystFilter("All"); setDateFrom(""); setDateTo(""); setStatusFilter("All"); }}
+          onClick={() => { setQuery(""); setAnalystFilter("All"); setInstrumentFilter("All"); setActivityFilter("All"); setDateFrom(""); setDateTo(""); setStatusFilter("All"); }}
         >
           Clear
         </button>

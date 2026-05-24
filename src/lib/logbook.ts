@@ -699,7 +699,7 @@ async function updateUserMetadata(userId: string, patch: AuthMetadata) {
   return userMetadata;
 }
 
-async function supabaseRest<T>(
+export async function supabaseRest<T>(
   path: string,
   options: { method?: string; body?: Record<string, unknown>; prefer?: string } = {}
 ) {
